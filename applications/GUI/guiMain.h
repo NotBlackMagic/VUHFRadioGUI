@@ -16,6 +16,7 @@ extern "C" {
 #include "drv_gpio.h"
 
 //Custom application includes
+#include "ax25.h"
 #include "customWidgets.h"
 #include "interThreadCommunication.h"
 #include "styles.h"
@@ -25,6 +26,7 @@ extern lv_obj_t* messageArea;
 extern lv_obj_t* spectrumChart;
 
 void GUIMainAreaInit();
+void GUIRMainAreaMessageUpdate(AX25Struct* packet);
 
 #ifdef __cplusplus
 }

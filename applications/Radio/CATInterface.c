@@ -132,6 +132,7 @@ CATInterfaceStatus CATInterfaceHandler(uint8_t* data, uint16_t dataLength, uint8
 	}
 	else if(data[0] == 'T' && data[1] == 'C') {
 		//TNC Mode
+		return CATCommandTNC(data, dataLength, rData, rDataLength);
 	}
 	else if(data[0] == '?' && data[1] == ';') {
 		//Command return ERROR
@@ -1216,6 +1217,10 @@ uint8_t CATCommandTNC(uint8_t* data, uint16_t dataLength, uint8_t* rData, uint16
 				rDataLength = sprintf(rData, "?;");
 				return CAT_ERROR;
 			}
+
+			//Inform GUI of value change
+			InterThreadMessageStruct guiMsg = {.id = InterThread_TNCEnable, .data = (uint32_t*)radioAConfig.tncMode, .length = 0 };
+			rt_mq_send(&guiMessageQueue, (void*)&guiMsg, sizeof(InterThreadMessageStruct));
 		}
 		else if(radio == RADIO_B) {
 			if(value == 0x00) {

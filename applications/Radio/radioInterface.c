@@ -138,6 +138,8 @@ static void RadioTrackingTimerTimout(void *parameter) {
   */
 void RadioInterfaceThread() {
 	rt_err_t status;
+	uint8_t ax25PacketPayload[256];
+	AX25Struct ax25Packet = {.payload = ax25PacketPayload};
 	InterThreadMessageStruct msg;
 
 	uint8_t rData[20];
@@ -188,8 +190,17 @@ void RadioInterfaceThread() {
 				}
 				case InterThread_SerialTNC: {
 					//TNC message from Serial Interface (Serial ISR)
-					AX25Struct ax25Packet;
-					AX25Decode(msg.data, msg.length, &ax25Packet);
+					uint8_t* pkt = (uint8_t*)msg.data;
+
+					//Add dummy CRC, needed for AX25Decode and not provided over the KISS protocol
+					pkt[msg.length++] = 0x00;
+					pkt[msg.length++] = 0x00;
+
+					AX25Decode(&pkt[2], (msg.length - 3), &ax25Packet);
+
+					//Inform GUI of value change
+					InterThreadMessageStruct guiMsg = {.id = InterThread_TNCPacket, .data = (uint32_t*)&ax25Packet, .length = sizeof(AX25Struct) };
+					rt_mq_send(&guiMessageQueue, (void*)&guiMsg, sizeof(InterThreadMessageStruct));
 					break;
 				}
 				//Analog Control OpCodes
@@ -619,7 +630,7 @@ void RadioInterfaceInitConfigs() {
 
 		if(radioSerialMessageStatus == SerialMessage_Free) {
 			//Check if all configurations received
-			if(config == 0x13) {
+			if(config == 0x14) {
 				run = 0x00;
 			}
 
@@ -711,13 +722,19 @@ void RadioInterfaceInitConfigs() {
 					//Get configuration: crcA
 					txPacketLength = sprintf(txPacketBuffer, "CT0;");
 					break;
+				case 0x13:
+					//Get configuration: tncMode
+					txPacketLength = sprintf(txPacketBuffer, "TC0;");
+					break;
 				default:
 					txPacketLength = 0;
 					break;
 			}
 
-			rt_err_t status = rt_device_write(radioSerial, 0, txPacketBuffer, txPacketLength);
-			radioSerialMessageStatus = SerialMessage_WaitingACK;
+			if(txPacketLength > 0) {
+				rt_err_t status = rt_device_write(radioSerial, 0, txPacketBuffer, txPacketLength);
+				radioSerialMessageStatus = SerialMessage_WaitingACK;
+			}
 
 			config += 1;
 		}

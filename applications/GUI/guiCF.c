@@ -123,7 +123,7 @@ void GUICFAreaInit() {
 	lv_obj_set_style_border_color(centerFrequencyTextArea, STYLE_COLOR_GREY, LV_PART_CURSOR);
 	lv_obj_set_style_text_font(centerFrequencyTextArea, &lv_font_montserrat_40, LV_PART_MAIN);
 	lv_obj_align(centerFrequencyTextArea, LV_ALIGN_TOP_RIGHT, 0, 0);
-	lv_textarea_set_text(centerFrequencyTextArea, "436450000");
+	lv_textarea_set_text(centerFrequencyTextArea, "433000000");
 	lv_obj_add_event_cb(centerFrequencyTextArea, GUICFTextArea, LV_EVENT_FOCUSED, numPad);
 	lv_obj_add_event_cb(centerFrequencyTextArea, GUICFTextArea, LV_EVENT_DEFOCUSED, numPad);
 	lv_obj_add_event_cb(centerFrequencyTextArea, GUICFTextArea, LV_EVENT_READY, numPad);

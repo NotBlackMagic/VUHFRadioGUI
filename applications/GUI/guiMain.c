@@ -1,10 +1,26 @@
 #include "guiMain.h"
 
-#define GUI_SPECTRUM_CHART_POINTS					32
+#define GUI_SPECTRUM_CHART_POINTS					31
 
 //Main Area GUI Objects
 lv_obj_t* messageArea;
 lv_obj_t* spectrumChart;
+
+/**
+  * @brief	This function is used to update more complex GUI elements in this GUI part
+  * @param	None
+  * @return	None
+  */
+void GUIRMainAreaMessageUpdate(AX25Struct* packet) {
+	//Update text
+	uint16_t index = 0;
+	char str[500];
+	index += sprintf(&str[index], "SRC: %s\n", packet->sourceAddress);
+	index += sprintf(&str[index], "DST: %s\n", packet->destinationAddress);
+	index += sprintf(&str[index], "PID: 0x%02X; CTRL: 0x%02X\n", packet->pid, packet->control);
+	index += sprintf(&str[index], "DATA: %s\n", packet->payload);
+	lv_label_set_text(messageArea, str);
+}
 
 /**
   * @brief	This function initializes this GUI part
@@ -45,5 +61,5 @@ void GUIMainAreaInit() {
 	lv_chart_set_div_line_count(spectrumChart, 5, 5);
 //	lv_chart_set_axis_tick(spectrumChart, LV_CHART_AXIS_PRIMARY_X, 7, 5, 5, 5, true, 50);
 //	lv_chart_set_axis_tick(spectrumChart, LV_CHART_AXIS_PRIMARY_Y, 7, 5, 5, 1, true, 50);
-	lv_obj_add_flag(messageArea, LV_OBJ_FLAG_HIDDEN);
+	lv_obj_add_flag(spectrumChart, LV_OBJ_FLAG_HIDDEN);
 }

@@ -67,8 +67,9 @@ void GUIUpdate() {
 	InterThreadMessageStruct msg;
 	if(rt_mq_recv(&guiMessageQueue, (void*)&msg, sizeof(InterThreadMessageStruct), RT_WAITING_NO) == RT_EOK) {
 		switch(msg.id) {
-			case 0x00: {
-//				lv_label_set_text(label1, msg.data);
+			case InterThread_TNCPacket: {
+				AX25Struct* ax25Packet = (AX25Struct*)(msg.data);
+				GUIRMainAreaMessageUpdate(ax25Packet);
 				break;
 			}
 			case InterThread_CenterFrequency: {
@@ -127,6 +128,37 @@ void GUIUpdate() {
 				else {
 					lv_obj_set_style_border_color(radioModeDropDown, STYLE_COLOR_DARK_GREEN, LV_PART_MAIN);
 					lv_obj_set_style_text_color(radioModeDropDown, STYLE_COLOR_GREEN, LV_PART_MAIN);
+				}
+				break;
+			}
+			case InterThread_DatarateRX: {
+				uint32_t datarate = (uint32_t)(msg.data);
+				char str[12];
+				sprintf(str, "%d", datarate);
+				lv_textarea_set_text(radioRXDatarateTextArea, str);
+			}
+			case InterThread_Encoding: {
+				uint32_t encoding = (uint32_t)(msg.data);
+				lv_dropdown_set_selected(radioPacketEncodingDropDown, encoding);
+				break;
+			}
+			case InterThread_Framing: {
+				uint32_t framing = (uint32_t)(msg.data);
+				lv_dropdown_set_selected(radioPacketFramingDropDown, framing);
+				break;
+			}
+			case InterThread_CRC: {
+				uint32_t crc = (uint32_t)(msg.data);
+				lv_dropdown_set_selected(radioPacketCRCDropDown, crc);
+				break;
+			}
+			case InterThread_TNCEnable: {
+				uint32_t tnc = (uint32_t)(msg.data);
+				if(tnc != 0) {
+					lv_obj_add_state(radioTNCEnableButton, LV_STATE_CHECKED);
+				}
+				else {
+					lv_obj_clear_state(radioTNCEnableButton, LV_STATE_CHECKED);
 				}
 				break;
 			}

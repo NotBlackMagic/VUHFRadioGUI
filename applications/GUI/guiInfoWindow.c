@@ -4,7 +4,7 @@
 #define GUI_HARDWARE_VERSION_MINOR				0
 #define GUI_FIRMWARE_VERSION_MAJOR				1
 #define GUI_FIRMWARE_VERSION_MINOR				10
-#define GUI_FIRMWARE_VERSION_HASH				0xAAAAAAAA
+#define GUI_FIRMWARE_VERSION_HASH				0x06866605
 
 //Radio Information Window GUI Objects
 lv_obj_t* infoWindow;

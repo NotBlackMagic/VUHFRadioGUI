@@ -21,6 +21,7 @@ extern "C" {
 #include "styles.h"
 
 //GUI Parts
+#include "guiNumPad.h"
 #include "guiTracking.h"
 
 //Radio Basic Configuration GUI Objects
@@ -29,6 +30,13 @@ extern lv_obj_t* radioModulationDropDown;
 extern lv_obj_t* radioAGCDropDown;
 extern lv_obj_t* radioAFCDropDown;
 extern lv_obj_t* radioAFCEnableButton;
+extern lv_obj_t* radioPacketConfigurationButton;
+extern lv_obj_t* radioPacketConfigurationMenu;
+extern lv_obj_t* radioPacketEncodingDropDown;
+extern lv_obj_t* radioPacketFramingDropDown;
+extern lv_obj_t* radioPacketCRCDropDown;
+extern lv_obj_t* radioRXDatarateTextArea;
+extern lv_obj_t* radioTNCEnableButton;
 
 void GUIBasicRadioConfigAreaInit();
 

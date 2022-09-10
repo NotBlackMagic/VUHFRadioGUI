@@ -34,6 +34,7 @@ processor_version: 0.0.0
 void BOARD_InitBootPins(void) {
     BOARD_InitPins();
     BOARD_InitI2C1Pins();
+    BOARD_InitSAI1Pins();
 }
 
 /*
@@ -1081,6 +1082,42 @@ void BOARD_InitI2C1Pins(void) {
                                                  Pull / Keep Select Field: Keeper
                                                  Pull Up / Down Config. Field: 22K Ohm Pull Up
                                                  Hyst. Enable Field: Hysteresis Disabled */
+}
+
+void BOARD_InitSAI1Pins(void) {
+	CLOCK_EnableClock(kCLOCK_Iomuxc);           /* iomuxc clock (iomuxc_clk_enable): 0x03u */
+
+	IOMUXC_SetPinMux(
+			IOMUXC_GPIO_AD_B1_09_SAI1_MCLK,
+			1U);
+	IOMUXC_SetPinMux(
+			IOMUXC_GPIO_AD_B1_12_SAI1_RX_DATA00,
+			0U);
+	IOMUXC_SetPinMux(
+			IOMUXC_GPIO_AD_B1_13_SAI1_TX_DATA00,
+			1U);
+	IOMUXC_SetPinMux(
+			IOMUXC_GPIO_AD_B1_14_SAI1_TX_BCLK,
+			1U);
+	IOMUXC_SetPinMux(
+			IOMUXC_GPIO_AD_B1_15_SAI1_TX_SYNC,
+			1U);
+
+	IOMUXC_SetPinConfig(
+			IOMUXC_GPIO_AD_B1_09_SAI1_MCLK,
+			0x10B0U);
+	IOMUXC_SetPinConfig(
+			IOMUXC_GPIO_AD_B1_12_SAI1_RX_DATA00,
+			0x10B0U);
+	IOMUXC_SetPinConfig(
+			IOMUXC_GPIO_AD_B1_13_SAI1_TX_DATA00,
+			0x10B0U);
+	IOMUXC_SetPinConfig(
+			IOMUXC_GPIO_AD_B1_14_SAI1_TX_BCLK,
+			0x10B0U);
+	IOMUXC_SetPinConfig(
+			IOMUXC_GPIO_AD_B1_15_SAI1_TX_SYNC,
+			0x10B0U);
 }
 
 /***********************************************************************************************************************

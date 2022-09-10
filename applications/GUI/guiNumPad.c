@@ -26,7 +26,7 @@ void GUINumPadInit() {
 	lv_obj_add_style(numPad, &mainStyle, LV_PART_MAIN);
 	lv_obj_add_style(numPad, &mainStyle, LV_PART_ITEMS);
 	lv_obj_add_style(numPad, &mainStylePressed, LV_PART_ITEMS | LV_STATE_PRESSED);
-	lv_obj_align(numPad, LV_ALIGN_BOTTOM_MID, 0, 0);
+	lv_obj_align(numPad, LV_ALIGN_BOTTOM_MID, 0, -10);
 	//Correct padding for row and column spacing (applied only to one side...)
 	lv_obj_set_style_pad_right(numPad, 2, LV_PART_MAIN);
 	lv_obj_set_style_pad_bottom(numPad, 2, LV_PART_MAIN);

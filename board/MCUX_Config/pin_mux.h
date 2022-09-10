@@ -65,6 +65,12 @@ void BOARD_InitSemcPins(void);
  */
 void BOARD_InitI2C1Pins(void);
 
+/*!
+ * @brief Configures pin routing and optionally pin electrical features.
+ *
+ */
+void BOARD_InitSAI1Pins(void);
+
 #if defined(__cplusplus)
 }
 #endif

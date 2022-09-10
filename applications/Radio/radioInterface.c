@@ -2,7 +2,7 @@
 
 #define SERIAL_RX_PACKET_BUFFER_SIZE			200
 
-#define SERIAL_TRACKING_REFRESH_PERIOD			100
+#define SERIAL_TRACKING_REFRESH_PERIOD			500
 
 //Serial Interface to VUHFRadio message status enumeration
 typedef enum {
@@ -32,6 +32,9 @@ volatile SerialMessageStatus radioSerialMessageStatus;
 uint8_t rxBuffer[10];
 uint16_t rxPacketIndex;
 uint8_t rxPacketBuffer[SERIAL_RX_PACKET_BUFFER_SIZE];
+//For AX25 Messages
+uint8_t ax25PacketPayload[256];
+AX25Struct ax25Packet = {.payload = ax25PacketPayload};
 
 //Thread input message queue variables
 struct rt_messagequeue radioInterfaceMessageQueue;
@@ -124,7 +127,7 @@ static void RadioTrackingTimerTimout(void *parameter) {
 
 		//Step through available tracking data IDs
 		trackingDataID += 1;
-		if(trackingDataID > 1) {
+		if(trackingDataID > 2) {
 			trackingDataID = 0;
 		}
 	}
@@ -138,8 +141,6 @@ static void RadioTrackingTimerTimout(void *parameter) {
   */
 void RadioInterfaceThread() {
 	rt_err_t status;
-	uint8_t ax25PacketPayload[256];
-	AX25Struct ax25Packet = {.payload = ax25PacketPayload};
 	InterThreadMessageStruct msg;
 
 	uint8_t rData[20];
@@ -203,6 +204,19 @@ void RadioInterfaceThread() {
 					rt_mq_send(&guiMessageQueue, (void*)&guiMsg, sizeof(InterThreadMessageStruct));
 					break;
 				}
+				//General Radio OpCodes
+				case InterThread_Memory: {
+					//Select memory (pre-defined settings) channel
+					uint8_t memoryChannel = (uint8_t)msg.data;
+					rt_mutex_take(&serialMessageMutex, RT_WAITING_FOREVER);
+					if(radioSerialMessageStatus == SerialMessage_Free) {
+//						txPacketLength = sprintf(txPacketBuffer, "FA%09d;", radioAConfig.centerFrequency);
+//						rt_err_t status = rt_device_write(radioSerial, 0, txPacketBuffer, txPacketLength);
+//						radioSerialMessageStatus = SerialMessage_WaitingACK;
+					}
+					rt_mutex_release(&serialMessageMutex);
+					break;
+				}
 				//Analog Control OpCodes
 				case InterThread_CenterFrequency: {
 					//Center Frequency Change
@@ -219,13 +233,27 @@ void RadioInterfaceThread() {
 				case InterThread_AFC: {
 					//AFC Change
 					uint32_t value = (uint32_t)msg.data;
-					if(value == 0x01) {
-						//Enable AFC, use 1/4 of bandwidth as AFC range
-						radioAConfig.afcRange = (radioAConfig.bandwidth >> 2);
-					}
-					else {
-						//Disable AFC
-						radioAConfig.afcRange = 0;
+					switch(value) {
+						case 0x00:
+							//AFC Range Wide: 1/4 of bandwidth
+							radioAConfig.afcRange = (radioAConfig.bandwidth >> 2);
+							break;
+						case 0x01:
+							//AFC Range Middle: 1/8 of bandwidth
+							radioAConfig.afcRange = (radioAConfig.bandwidth >> 3);
+							break;
+						case 0x02:
+							//AFC Range Narrow: 1/16 of bandwidth
+							radioAConfig.afcRange = (radioAConfig.bandwidth >> 4);
+							break;
+						case 0x03:
+							//AFC Disabled
+							radioAConfig.afcRange = 0;
+							break;
+						default:
+							//AFC Disabled
+							radioAConfig.afcRange = 0;
+							break;
 					}
 					rt_mutex_take(&serialMessageMutex, RT_WAITING_FOREVER);
 					if(radioSerialMessageStatus == SerialMessage_Free) {
@@ -262,7 +290,9 @@ void RadioInterfaceThread() {
 				}
 				case InterThread_AGCSpeed: {
 					//AGC Change
-					radioAConfig.agcSpeed = (uint8_t)msg.data;
+					uint8_t agcListToSpeed[6] = {0, 3, 5, 7, 9, 15};
+					//Convert from AGC Drop Down index
+					radioAConfig.agcSpeed = (uint8_t)agcListToSpeed[(uint8_t)msg.data];
 					rt_mutex_take(&serialMessageMutex, RT_WAITING_FOREVER);
 					if(radioSerialMessageStatus == SerialMessage_Free) {
 						txPacketLength = sprintf(txPacketBuffer, "GT0%02d;", (15 - radioAConfig.agcSpeed));

@@ -16,7 +16,14 @@ static void GUIBottomBarButtonEvent(lv_event_t * e) {
 	lv_obj_t * btn = lv_event_get_target(e);
 	if(code == LV_EVENT_CLICKED) {
 		if(btn == menuButton) {
-
+			if(lv_obj_has_flag(menu, LV_OBJ_FLAG_HIDDEN) == true) {
+				//Menu is hidden (closed) so open it
+				lv_obj_clear_flag(menu, LV_OBJ_FLAG_HIDDEN);
+			}
+			else {
+				//Menu is not hidden (open) so close it
+				lv_obj_add_flag(menu, LV_OBJ_FLAG_HIDDEN);
+			}
 		}
 		else if(btn == infoButton) {
 			GUIRadioInfoWindowUpdate();
@@ -39,14 +46,22 @@ static void GUIBottomBarDropDownEvent(lv_event_t * e) {
 			uint16_t selected = lv_dropdown_get_selected(obj);
 			switch(selected) {
 				case 0:
-					//Selected Spectrum View
+					//Selected Message View
 					lv_obj_clear_flag(messageArea, LV_OBJ_FLAG_HIDDEN);
 					lv_obj_add_flag(spectrumChart, LV_OBJ_FLAG_HIDDEN);
+					lv_obj_add_flag(signalChart, LV_OBJ_FLAG_HIDDEN);
 					break;
 				case 1:
-					//Selected Message View
+					//Selected Spectrum View
 					lv_obj_clear_flag(spectrumChart, LV_OBJ_FLAG_HIDDEN);
 					lv_obj_add_flag(messageArea, LV_OBJ_FLAG_HIDDEN);
+					lv_obj_add_flag(signalChart, LV_OBJ_FLAG_HIDDEN);
+					break;
+				case 2:
+					//Selected Signal View
+					lv_obj_clear_flag(signalChart, LV_OBJ_FLAG_HIDDEN);
+					lv_obj_add_flag(messageArea, LV_OBJ_FLAG_HIDDEN);
+					lv_obj_add_flag(spectrumChart, LV_OBJ_FLAG_HIDDEN);
 					break;
 				default:
 					break;
@@ -85,11 +100,14 @@ void GUIBottomBarInit() {
 	lv_label_set_text(label, "MENU");
 	lv_obj_set_style_border_width(label, 0, LV_PART_MAIN);
 	lv_obj_center(label);
+	//Add event
+	lv_obj_add_event_cb(menuButton, GUIBottomBarButtonEvent, LV_EVENT_CLICKED, NULL);
 
 	//Main Screen Selection Drop Down
 	screenSelectionDropDown = lv_dropdown_create(bottomBarArea);
 	lv_dropdown_set_options(screenSelectionDropDown,	"MESSAGE\n"
-														"SPECTRUM");
+														"SPECTRUM\n"
+														"SIGNAL");
 	lv_obj_remove_style_all(screenSelectionDropDown);
 	lv_obj_add_style(screenSelectionDropDown, &mainStyle, 0);
 	lv_obj_set_style_bg_color(screenSelectionDropDown, lv_color_hex(0x606060), LV_PART_MAIN);

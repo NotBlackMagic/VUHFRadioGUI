@@ -1,5 +1,5 @@
-#ifndef APPLICATIONS_GUI_GUIBOTTOMBAR_H_
-#define APPLICATIONS_GUI_GUIBOTTOMBAR_H_
+#ifndef APPLICATIONS_GUI_GUIMENU_H_
+#define APPLICATIONS_GUI_GUIMENU_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -18,22 +18,19 @@ extern "C" {
 //Custom application includes
 #include "customWidgets.h"
 #include "interThreadCommunication.h"
+#include "radioConfigs.h"
 #include "styles.h"
 
 //GUI Parts
-#include "guiInfoWindow.h"
-#include "guiMain.h"
-#include "guiMenu.h"
+#include "guiNumPad.h"
 
-//Bottom bar GUI objects
-extern lv_obj_t* bottomBarArea;
-extern lv_obj_t* menuButton;
-extern lv_obj_t* infoButton;
+//Menu GUI objects
+extern lv_obj_t* menu;
 
-void GUIBottomBarInit();
+void GUIMenuInit();
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* APPLICATIONS_GUI_GUIBOTTOMBAR_H_ */
+#endif /* APPLICATIONS_GUI_GUIMENU_H_ */

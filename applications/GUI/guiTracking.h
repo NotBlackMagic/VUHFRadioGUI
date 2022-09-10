@@ -23,10 +23,10 @@ extern "C" {
 //Radio Tracking Information GUI objects
 extern lv_obj_t* rssiTrackingArea;
 extern lv_obj_t* rssiTrackingBar;
+extern lv_obj_t* agcGainTrackingBar;
 extern lv_obj_t* rfTrackingArea;
 extern lv_obj_t* rfTrackingBar;
 extern lv_obj_t* rfAFCRangeBar;
-extern lv_obj_t* emptyTrackingArea;
 
 void GUITrackingAreaInit();
 

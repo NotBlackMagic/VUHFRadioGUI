@@ -24,6 +24,7 @@ extern "C" {
 //Main Area GUI Objects
 extern lv_obj_t* messageArea;
 extern lv_obj_t* spectrumChart;
+extern lv_obj_t* signalChart;
 
 void GUIMainAreaInit();
 void GUIRMainAreaMessageUpdate(AX25Struct* packet);

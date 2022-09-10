@@ -3,10 +3,11 @@
 //Radio Tracking Information GUI objects
 lv_obj_t* rssiTrackingArea;
 lv_obj_t* rssiTrackingBar;
+lv_obj_t* agcGainTrackingArea;
+lv_obj_t* agcGainTrackingBar;
 lv_obj_t* rfTrackingArea;
 lv_obj_t* rfTrackingBar;
 lv_obj_t* rfAFCRangeBar;
-lv_obj_t* emptyTrackingArea;
 
 /**
   * @brief	This function initializes this GUI part
@@ -49,6 +50,40 @@ void GUITrackingAreaInit() {
 	lv_obj_align(label, LV_ALIGN_BOTTOM_MID, 0, -2);
 	lv_label_set_text(label, "-128  -96  -64   -32    0");
 
+	//AGC Gain Indicator Area
+	agcGainTrackingArea = lv_obj_create(lv_scr_act());	//lv_btn_create(lv_scr_act());
+	lv_obj_remove_style_all(agcGainTrackingArea);
+	lv_obj_add_style(agcGainTrackingArea, &mainStyle, LV_PART_MAIN);
+	lv_obj_set_style_pad_all(agcGainTrackingArea, 0, LV_PART_MAIN);
+	lv_obj_set_size(agcGainTrackingArea, 210, 28);
+	lv_obj_set_pos(agcGainTrackingArea, 270, 25+26);
+	//AGC Gain Indicator Bar
+	agcGainTrackingBar = lv_bar_create(agcGainTrackingArea);
+	lv_obj_remove_style_all(agcGainTrackingBar);
+	lv_obj_add_style(agcGainTrackingBar, &mainStyle, LV_PART_MAIN);
+	lv_obj_set_style_border_width(agcGainTrackingBar, 0, LV_PART_MAIN);
+	lv_obj_set_style_pad_all(agcGainTrackingBar, 0, LV_PART_MAIN);
+	lv_obj_set_style_bg_color(agcGainTrackingBar, lv_color_hex(0xFF0000), LV_PART_INDICATOR);
+	lv_obj_set_style_bg_grad_color(agcGainTrackingBar, lv_color_hex(0x00FF00), LV_PART_INDICATOR);
+	lv_obj_set_style_bg_grad_dir(agcGainTrackingBar, LV_GRAD_DIR_HOR, LV_PART_INDICATOR);
+	lv_obj_set_style_bg_opa(agcGainTrackingBar, LV_OPA_100, LV_PART_INDICATOR);
+	lv_obj_set_size(agcGainTrackingBar, 210 - 16*2, 5);
+	lv_obj_set_pos(agcGainTrackingBar, 17, 4);
+	lv_bar_set_range(agcGainTrackingBar, 0, 256);
+	lv_bar_set_value(agcGainTrackingBar, 15, LV_ANIM_OFF);
+	//RSSI Indicator Scale
+	CustomScaleCreateParent(agcGainTrackingArea, 16, 18, 2, 7, 3, false);
+	CustomScaleCreateParent(agcGainTrackingArea, 16, 18, 1, 5, 11, false);
+	//RSSI Indicator Scale Label
+	label = lv_label_create(agcGainTrackingArea);
+	lv_obj_remove_style_all(label);
+	lv_obj_add_style(label, &mainStyle, LV_PART_MAIN);
+	lv_obj_set_style_border_width(label, 0, LV_PART_MAIN);
+	lv_obj_set_style_pad_all(label, 0, LV_PART_MAIN);
+	lv_obj_set_style_text_font(label, &lv_font_unscii_8, LV_PART_MAIN);
+	lv_obj_align(label, LV_ALIGN_BOTTOM_MID, 0, -2);
+	lv_label_set_text(label, "  0    48   96   144  192");
+
 	//Set RF Offset Tracking Indicator
 	//RF Offset Tracking Indicator Area
 	rfTrackingArea = lv_btn_create(lv_scr_act());
@@ -56,7 +91,7 @@ void GUITrackingAreaInit() {
 	lv_obj_add_style(rfTrackingArea, &mainStyle, LV_PART_MAIN);
 	lv_obj_set_style_pad_all(rfTrackingArea, 0, LV_PART_MAIN);
 	lv_obj_set_size(rfTrackingArea, 210, 28);
-	lv_obj_set_pos(rfTrackingArea, 270, 25+26);
+	lv_obj_set_pos(rfTrackingArea, 270, 25+26+26);
 	//AFC Range Bar
 	rfAFCRangeBar = lv_line_create(rfTrackingArea);
 	static lv_point_t rfTrackingBandwidthPoints[] = { {0, 0}, {90, 0} };
@@ -92,14 +127,4 @@ void GUITrackingAreaInit() {
 	lv_obj_set_style_line_color(rfTrackingBar, lv_color_hex(0x00FF00), LV_PART_MAIN);
 	lv_obj_set_style_line_width(rfTrackingBar, 3, LV_PART_MAIN);
 	lv_obj_set_pos(rfTrackingBar, 50, 2);
-
-	//Set Empty Tracking Indicator
-	//Empty Tracking Indicator Area
-	emptyTrackingArea = lv_btn_create(lv_scr_act());
-	lv_obj_remove_style_all(emptyTrackingArea);
-	lv_obj_add_style(emptyTrackingArea, &mainStyle, LV_PART_MAIN);
-//	lv_obj_set_style_border_width(rssiTrackingArea, 0, LV_PART_MAIN);
-	lv_obj_set_style_pad_all(emptyTrackingArea, 0, LV_PART_MAIN);
-	lv_obj_set_size(emptyTrackingArea, 210, 28);
-	lv_obj_set_pos(emptyTrackingArea, 270, 25+26+26);
 }

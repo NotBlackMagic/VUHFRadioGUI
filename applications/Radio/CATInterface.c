@@ -20,6 +20,7 @@ CATInterfaceStatus CATCommandIFFrequency(uint8_t* data, uint16_t dataLength, uin
 CATInterfaceStatus CATCommandRecallMemory(uint8_t* data, uint16_t dataLength, uint8_t* rData, uint16_t* rDataLength);
 CATInterfaceStatus CATCommandModulation(uint8_t* data, uint16_t dataLength, uint8_t* rData, uint16_t* rDataLength);
 CATInterfaceStatus CATCommandTXPower(uint8_t* data, uint16_t dataLength, uint8_t* rData, uint16_t* rDataLength);
+CATInterfaceStatus CATCommandRXGain(uint8_t* data, uint16_t dataLength, uint8_t* rData, uint16_t* rDataLength);
 CATInterfaceStatus CATCommandBandwidth(uint8_t* data, uint16_t dataLength, uint8_t* rData, uint16_t* rDataLength);
 CATInterfaceStatus CATCommandReadMeter(uint8_t* data, uint16_t dataLength, uint8_t* rData, uint16_t* rDataLength);
 CATInterfaceStatus CATCommandRSSI(uint8_t* data, uint16_t dataLength, uint8_t* rData, uint16_t* rDataLength);
@@ -977,6 +978,57 @@ CATInterfaceStatus CATCommandTXPower(uint8_t* data, uint16_t dataLength, uint8_t
 }
 
 /**
+  * @brief	This function handles the RX Gain Command
+  * @param	data: Current Input data string
+  * @param	dataLength: Length of the data string
+  * @param	rData: Return data string, what to answer over the interface
+  * @param	rDataLength: Length of the return data string
+  * @return	0-> No Errors, 1->Error in Command
+  *
+  * Example: Set: PG1010; Read: PG1; Return: PG1010;
+  */
+uint8_t CATCommandRXGain(uint8_t* data, uint16_t dataLength, uint8_t* rData, uint16_t* rDataLength) {
+	uint32_t radio = 0;
+	if(CATASCIIToNumber(&data[2], 1, &radio) != 0x00) {
+		*rDataLength = sprintf(rData, "?;");
+		return 1;
+	}
+
+	//Check if is Return Value, same syntax as Write command
+	if(data[6] == ';') {
+		//Return Value from Read Command
+		uint32_t value = 0;
+		if(CATASCIIToNumber(&data[4], 3, &value) != 0x00) {
+			*rDataLength = sprintf(rData, "?;");
+			return CAT_ERROR;
+		}
+
+		if(radio == RADIO_A) {
+			radioATracking.agcGainTracking = value;
+
+			//Inform GUI of value change
+			InterThreadMessageStruct guiMsg = {.id = InterThread_TrackingAGCGain, .data = (uint32_t*)radioATracking.agcGainTracking, .length = 0 };
+			rt_mq_send(&guiMessageQueue, (void*)&guiMsg, sizeof(InterThreadMessageStruct));
+		}
+		else if(radio == RADIO_B) {
+			radioBTracking.agcGainTracking = value;
+		}
+		else {
+			*rDataLength = sprintf(rData, "?;");
+			return CAT_ERROR;
+		}
+	}
+	else {
+		//Syntax Error
+		*rDataLength = sprintf(rData, "?;");
+		return CAT_ERROR;
+	}
+
+	*rDataLength = sprintf(rData, "OK;");
+	return 0;
+}
+
+/**
   * @brief	This function handles the RX Bandwidth Command
   * @param	data: Current Input data string
   * @param	dataLength: Length of the data string
@@ -1110,6 +1162,32 @@ CATInterfaceStatus CATCommandReadMeter(uint8_t* data, uint16_t dataLength, uint8
 				}
 				else if(radio == RADIO_B) {
 					radioBTracking.rfFrequencyTracking = value;
+				}
+				else {
+					*rDataLength = sprintf(rData, "?;");
+					return CAT_ERROR;
+				}
+			}
+			break;
+		case 0x02:
+			//Read AGC Gain value
+			if(data[7] == ';') {
+				//Return Value from Read Command
+				uint32_t value = 0;
+				if(CATASCIIToNumber(&data[4], 3, &value) != 0x00) {
+					*rDataLength = sprintf(rData, "?;");
+					return CAT_ERROR;
+				}
+
+				if(radio == RADIO_A) {
+					radioATracking.agcGainTracking = value;
+
+					//Inform GUI of value change
+					InterThreadMessageStruct guiMsg = {.id = InterThread_TrackingAGCGain, .data = (uint32_t*)radioATracking.agcGainTracking, .length = 0 };
+					rt_mq_send(&guiMessageQueue, (void*)&guiMsg, sizeof(InterThreadMessageStruct));
+				}
+				else if(radio == RADIO_B) {
+					radioBTracking.agcGainTracking = value;
 				}
 				else {
 					*rDataLength = sprintf(rData, "?;");

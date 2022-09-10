@@ -47,6 +47,7 @@ void GUIInit() {
 	GUIBasicRadioConfigAreaInit();
 	GUIMainAreaInit();
 	GUIBottomBarInit();
+	GUIMenuInit();
 	GUIRadioInfoWindowInit();
 }
 
@@ -100,21 +101,84 @@ void GUIUpdate() {
 			}
 			case InterThread_Modulation: {
 				uint32_t modulation = (uint32_t)(msg.data);
-				lv_dropdown_set_selected(radioModulationDropDown, modulation);
+//				lv_dropdown_set_selected(radioModulationDropDown, modulation);
 				break;
 			}
 			case InterThread_AGCSpeed: {
 				uint32_t mode = (uint32_t)(msg.data);
-				lv_dropdown_set_selected(radioAGCDropDown, mode);
+				//Convert to AGC Drop Down index
+				uint8_t agcSpeedToList[16] = {0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 4, 4, 4, 4, 5};
+				lv_dropdown_set_selected(radioAGCDropDown, agcSpeedToList[mode]);
 				break;
 			}
 			case InterThread_AFC: {
 				uint32_t afc = (uint32_t)(msg.data);
-				if(afc != 0) {
-					lv_obj_add_state(radioAFCEnableButton, LV_STATE_CHECKED);
+
+				uint8_t afcRatio = 0;
+				if(afc > 0) {
+					afcRatio = radioAConfig.bandwidth / afc;
+				}
+
+				uint8_t selected = 0;
+				if(afcRatio < 3) {
+					//AFC Disabled
+					selected = 3;
+				}
+				else if(afcRatio < 6) {
+					//AFC Range Wide: 1/4 of bandwidth
+					selected = 0;
+				}
+				else if(afcRatio < 12) {
+					//AFC Range Middle: 1/8 of bandwidth
+					selected = 1;
+				}
+				else if(afcRatio < 24) {
+					//AFC Range Narrow: 1/8 of bandwidth
+					selected = 1;
 				}
 				else {
-					lv_obj_clear_state(radioAFCEnableButton, LV_STATE_CHECKED);
+					//AFC Disabled
+					selected = 3;
+				}
+				lv_dropdown_set_selected(radioAFCDropDown, selected);
+
+				//Change AFC Bar
+				switch(selected) {
+					case 0x00: {
+						//AFC Range Wide: 1/4 of bandwidth
+						//Set Size
+						static lv_point_t rfTrackingBandwidthPoints[] = { {0, 0}, {90, 0} };
+						lv_line_set_points(rfAFCRangeBar, rfTrackingBandwidthPoints, 2);
+						lv_obj_set_pos(rfAFCRangeBar, (210 - 90) / 2, 7);
+						//Enable Bar
+						lv_obj_clear_flag(rfAFCRangeBar, LV_OBJ_FLAG_HIDDEN);
+						break;
+					}
+					case 0x01: {
+						//AFC Range Middle: 1/8 of bandwidth
+						//Set Size
+						static lv_point_t rfTrackingBandwidthPoints[] = { {0, 0}, {45, 0} };
+						lv_line_set_points(rfAFCRangeBar, rfTrackingBandwidthPoints, 2);
+						lv_obj_set_pos(rfAFCRangeBar, (210 - 45) / 2, 7);
+						//Enable Bar
+						lv_obj_clear_flag(rfAFCRangeBar, LV_OBJ_FLAG_HIDDEN);
+						break;
+					}
+					case 0x02: {
+						//AFC Range Narrow: 1/16 of bandwidth
+						//Set Size
+						static lv_point_t rfTrackingBandwidthPoints[] = { {0, 0}, {23, 0} };
+						lv_line_set_points(rfAFCRangeBar, rfTrackingBandwidthPoints, 2);
+						lv_obj_set_pos(rfAFCRangeBar, (210 - 23) / 2, 7);
+						//Enable Bar
+						lv_obj_clear_flag(rfAFCRangeBar, LV_OBJ_FLAG_HIDDEN);
+						break;
+					}
+					case 0x03: {
+						//AFC Disabled
+						lv_obj_add_flag(rfAFCRangeBar, LV_OBJ_FLAG_HIDDEN);
+						break;
+					}
 				}
 				break;
 			}
@@ -135,21 +199,21 @@ void GUIUpdate() {
 				uint32_t datarate = (uint32_t)(msg.data);
 				char str[12];
 				sprintf(str, "%d", datarate);
-				lv_textarea_set_text(radioRXDatarateTextArea, str);
+//				lv_textarea_set_text(radioRXDatarateTextArea, str);
 			}
 			case InterThread_Encoding: {
 				uint32_t encoding = (uint32_t)(msg.data);
-				lv_dropdown_set_selected(radioPacketEncodingDropDown, encoding);
+//				lv_dropdown_set_selected(radioPacketEncodingDropDown, encoding);
 				break;
 			}
 			case InterThread_Framing: {
 				uint32_t framing = (uint32_t)(msg.data);
-				lv_dropdown_set_selected(radioPacketFramingDropDown, framing);
+//				lv_dropdown_set_selected(radioPacketFramingDropDown, framing);
 				break;
 			}
 			case InterThread_CRC: {
 				uint32_t crc = (uint32_t)(msg.data);
-				lv_dropdown_set_selected(radioPacketCRCDropDown, crc);
+//				lv_dropdown_set_selected(radioPacketCRCDropDown, crc);
 				break;
 			}
 			case InterThread_TNCEnable: {
@@ -173,20 +237,55 @@ void GUIUpdate() {
 				lv_obj_set_pos(rfTrackingBar, x, 2);
 				break;
 			}
+			case InterThread_TrackingAGCGain: {
+				uint8_t gain = (uint8_t)(msg.data);
+				lv_bar_set_value(agcGainTrackingBar, gain, LV_ANIM_OFF);
+				break;
+			}
 			case InterThread_TrackingSpectrum: {
-			    //Add points
-				uint8_t chartSize = lv_chart_get_point_count(spectrumChart);
+				if(lv_obj_has_flag(spectrumChart, LV_OBJ_FLAG_HIDDEN) == true) {
+					//This chart is hidden so ignore
+					break;
+				}
+
+				//Add points
+				uint16_t chartSize = lv_chart_get_point_count(spectrumChart);
 				if(chartSize != msg.length) {
 					break;
 				}
 
 				lv_chart_series_t * ser = lv_chart_get_series_next(spectrumChart, NULL);
 
-			    uint8_t i;
+			    uint16_t i;
 			    for(i = 0; i < chartSize; i++) {
 			    	ser->y_points[i] = ((int16_t*)msg.data)[i];
 			    }
 			    lv_chart_refresh(spectrumChart);
+				break;
+			}
+			case InterThread_TrackingSignal: {
+				if(lv_obj_has_flag(signalChart, LV_OBJ_FLAG_HIDDEN) == true) {
+					//This chart is hidden so ignore
+					break;
+				}
+
+				//Add points
+				uint16_t chartSize = lv_chart_get_point_count(signalChart);
+				if(chartSize != (msg.length / 2)) {
+					break;
+				}
+
+				lv_chart_series_t * serI = lv_chart_get_series_next(signalChart, NULL);
+				lv_chart_series_t * serQ = lv_chart_get_series_next(signalChart, serI);
+
+				uint16_t i;
+				for(i = 0; i < chartSize; i++) {
+					//I Signal
+					serI->y_points[i] = ((int16_t*)msg.data)[2*i] >> 8;
+					//Q Signal
+					serQ->y_points[i] = ((int16_t*)msg.data)[2*i + 1] >> 8;
+				}
+				lv_chart_refresh(signalChart);
 				break;
 			}
 		}

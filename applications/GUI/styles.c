@@ -48,6 +48,7 @@ void StylesInit() {
 	lv_style_init(&mainStyleSelected);
 	lv_style_set_bg_opa(&mainStyleSelected, LV_OPA_100);
 	lv_style_set_bg_color(&mainStyleSelected, STYLE_COLOR_GREY);
+	lv_style_set_text_color(&mainStyleSelected, STYLE_COLOR_WHITE);
 
 	//Style for ON/ENABLED state
 	lv_style_init(&mainStyleEnabled);

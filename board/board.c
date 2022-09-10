@@ -1023,6 +1023,7 @@ void rt_hw_board_init()
     // BOARD_ReconfigFlexSpiRxBuffer();
     BOARD_InitPins();
     BOARD_InitSemcPins();
+    BOARD_InitSAI1Pins();
     BOARD_BootClockRUN();
     NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
     SysTick_Config(SystemCoreClock / RT_TICK_PER_SECOND);

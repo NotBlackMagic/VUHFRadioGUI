@@ -4,7 +4,7 @@
 #define GUI_HARDWARE_VERSION_MINOR				0
 #define GUI_FIRMWARE_VERSION_MAJOR				1
 #define GUI_FIRMWARE_VERSION_MINOR				14
-#define GUI_FIRMWARE_VERSION_HASH				0x0f839b8e
+#define GUI_FIRMWARE_VERSION_HASH				0x0284df8b
 
 //Main menu object
 lv_obj_t* menu;
